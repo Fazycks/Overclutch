@@ -17,6 +17,7 @@ public sealed partial class AppServices : ObservableObject
         Engine = new TweakEngine(BackupStore.Default());
         GameMode = new GameModeService(() => Settings);
         Hardware = new Lazy<HardwareInfo>(HardwareInfo.Detect);
+        Maintenance = new MaintenanceScheduler(this);
     }
 
     public AppSettings Settings { get; }
@@ -24,6 +25,7 @@ public sealed partial class AppServices : ObservableObject
     public GameModeService GameMode { get; }
     public Lazy<HardwareInfo> Hardware { get; }
     public UpdateService Updates { get; } = new();
+    public MaintenanceScheduler Maintenance { get; }
 
     /// <summary>Set once a tweak that only takes effect after a reboot changed during this session.</summary>
     [ObservableProperty]

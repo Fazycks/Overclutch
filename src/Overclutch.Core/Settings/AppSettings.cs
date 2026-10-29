@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Overclutch.Core.Maintenance;
 
 namespace Overclutch.Core.Settings;
 
@@ -20,6 +21,13 @@ public sealed class AppSettings
         ["OneDrive", "ms-teams", "Widgets", "PhoneExperienceHost", "SearchHost", "msedge", "Spotify"];
 
     public bool MinimizeToTray { get; set; } = true;
+
+    /// <summary>Ids of the checked maintenance tasks, run together by hand or on <see cref="MaintenanceSchedule"/>.</summary>
+    public List<string> MaintenanceTasks { get; set; } = ["temp", "windows-update", "error-reports"];
+
+    public MaintenanceSchedule MaintenanceSchedule { get; set; } = MaintenanceSchedule.Never;
+
+    public DateTime? LastMaintenanceRun { get; set; }
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private static string FilePath => Path.Combine(AppPaths.DataDirectory, "settings.json");

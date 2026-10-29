@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Overclutch.App.Services;
+using Overclutch.App.Views;
 using Overclutch.Core.Maintenance;
 using Overclutch.Core.Monitoring;
 using Overclutch.Core.Tweaks;
@@ -124,10 +125,13 @@ public sealed partial class HomeViewModel : ObservableObject
     private Task CleanTempAsync() => RunAsync(async () =>
     {
         BusyText = "Nettoyage des fichiers temporaires…";
-        var freed = await Task.Run(Cleanup.CleanTempFiles);
+        var freed = await Services.Maintenance.RunAsync(MaintenanceCatalog.Find("temp")!);
         ShowResult(InfoBarSeverity.Success, "Nettoyage terminé",
-            $"{freed / 1024d / 1024:N0} Mo libérés. Les fichiers encore utilisés ont été laissés en place.");
+            $"{SizeText.Format(freed)} libérés. Les fichiers encore utilisés ont été laissés en place.");
     });
+
+    [RelayCommand]
+    private void OpenMaintenance() => ((MainWindow)App.Current.MainWindow).NavigateTo(typeof(MaintenancePage));
 
     [RelayCommand(CanExecute = nameof(CanRun))]
     private Task FlushDnsAsync() => RunAsync(async () =>

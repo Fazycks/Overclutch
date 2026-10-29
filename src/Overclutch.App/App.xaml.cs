@@ -39,6 +39,7 @@ public partial class App : Application
 
         if (services.Settings.GameModeEnabled)
             services.GameMode.Start();
+        services.Maintenance.Start();
 
         // Lets the uninstall hook know about a startup task created by an older version.
         _ = Task.Run(Autostart.SyncMarker);

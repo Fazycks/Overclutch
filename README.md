@@ -34,7 +34,9 @@ entièrement original et le projet n'est affilié à aucun éditeur.
 - **Mode jeu automatique** : détecte le jeu lancé, lui donne la priorité, passe en performances maximales et
   rétablit tout à sa fermeture.
 - **Matériel et suivi en temps réel** : processeur, mémoire, carte graphique NVIDIA.
-- **Maintenance** : nettoyage des fichiers temporaires et du cache DNS.
+- **Entretien** : fichiers temporaires, cache de Windows Update, rapports d'erreurs, vidages mémoire, corbeille,
+  cache des shaders DirectX et NVIDIA, mémoire en attente et cache DNS. Analyse de l'espace récupérable, lancement
+  en un clic, et entretien automatique chaque jour ou chaque semaine, jamais pendant une partie.
 - **Mises à jour automatiques** depuis les releases GitHub.
 
 ## Réglages inclus

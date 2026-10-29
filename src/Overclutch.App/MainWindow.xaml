@@ -44,6 +44,11 @@
                         <ui:SymbolIcon Symbol="Warning24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="Entretien" TargetPageType="{x:Type views:MaintenancePage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Broom24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="Monitoring" TargetPageType="{x:Type views:MonitoringPage}">
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Gauge24" />

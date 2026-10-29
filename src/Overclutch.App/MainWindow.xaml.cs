@@ -16,6 +16,8 @@ public partial class MainWindow
         Loaded += (_, _) => Navigation.Navigate(typeof(HomePage));
     }
 
+    public void NavigateTo(Type pageType) => Navigation.Navigate(pageType);
+
     protected override void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);

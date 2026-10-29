@@ -119,6 +119,8 @@
                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                                    Command="{Binding FlushDnsCommand}" />
                         <TextBlock Text="Utile si un site ou un serveur de jeu ne répond plus après un changement d'adresse." Style="{StaticResource Caption}" Margin="0,4,0,0" />
+                        <ui:HyperlinkButton Content="Toutes les tâches d'entretien →" Margin="-8,12,0,0" Padding="8,4"
+                                            Command="{Binding OpenMaintenanceCommand}" />
                     </StackPanel>
                 </ui:Card>
             </Grid>

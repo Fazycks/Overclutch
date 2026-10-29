@@ -91,4 +91,70 @@ internal static partial class NativeMethods
     [LibraryImport("dnsapi.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool DnsFlushResolverCache();
+
+    // ---- recycle bin ----
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ShQueryRbInfo
+    {
+        public uint Size;
+        public long TotalBytes;
+        public long ItemCount;
+    }
+
+    internal const uint SherbNoConfirmation = 0x1;
+    internal const uint SherbNoProgressUi = 0x2;
+    internal const uint SherbNoSound = 0x4;
+
+    [LibraryImport("shell32.dll", EntryPoint = "SHQueryRecycleBinW", StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial int SHQueryRecycleBin(string? rootPath, ref ShQueryRbInfo info);
+
+    [LibraryImport("shell32.dll", EntryPoint = "SHEmptyRecycleBinW", StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial int SHEmptyRecycleBin(nint window, string? rootPath, uint flags);
+
+    // ---- privileges and memory lists ----
+
+    internal const uint TokenAdjustPrivileges = 0x20;
+    internal const uint TokenQuery = 0x8;
+    internal const uint SePrivilegeEnabled = 0x2;
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Luid
+    {
+        public uint LowPart;
+        public int HighPart;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct TokenPrivileges
+    {
+        public uint PrivilegeCount;
+        public Luid Luid;
+        public uint Attributes;
+    }
+
+    [LibraryImport("kernel32.dll")]
+    internal static partial nint GetCurrentProcess();
+
+    [LibraryImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool OpenProcessToken(nint process, uint desiredAccess, out nint token);
+
+    [LibraryImport("advapi32.dll", EntryPoint = "LookupPrivilegeValueW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool LookupPrivilegeValue(string? systemName, string name, out Luid luid);
+
+    [LibraryImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool AdjustTokenPrivileges(nint token, [MarshalAs(UnmanagedType.Bool)] bool disableAll,
+        in TokenPrivileges newState, uint bufferLength, nint previousState, nint returnLength);
+
+    internal const int SystemMemoryListInformation = 80;
+    internal const int MemoryPurgeStandbyList = 4;
+
+    [LibraryImport("ntdll.dll")]
+    internal static unsafe partial int NtQuerySystemInformation(int infoClass, void* info, int length, out int returnLength);
+
+    [LibraryImport("ntdll.dll")]
+    internal static unsafe partial int NtSetSystemInformation(int infoClass, void* info, int length);
 }
