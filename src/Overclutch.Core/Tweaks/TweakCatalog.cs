@@ -237,6 +237,32 @@ public static class TweakCatalog
             RequiresReboot = true,
             Operations = () => [new ServiceStartOp("WSearch", System.ServiceProcess.ServiceStartMode.Disabled)],
         },
+        new()
+        {
+            Id = "bg.idle-services",
+            Title = "Désactiver des services inutiles",
+            Description = "Coupe le suivi des raccourcis déplacés entre disques (TrkWks) et le gestionnaire de cartes hors connexion "
+                          + "(MapsBroker), qui tournent en arrière-plan sans servir à la plupart des joueurs.",
+            Category = TweakCategory.Background,
+            RequiresReboot = true,
+            Operations = () =>
+            [
+                new ServiceStartOp("TrkWks", System.ServiceProcess.ServiceStartMode.Disabled),
+                new ServiceStartOp("MapsBroker", System.ServiceProcess.ServiceStartMode.Disabled),
+            ],
+        },
+        new()
+        {
+            Id = "adv.print-spooler",
+            Title = "Désactiver le spouleur d'impression",
+            Description = "Arrête le service d'impression, qui tourne en permanence même sans imprimante.",
+            Warning = "Plus aucune impression possible, y compris « Microsoft Print to PDF ». "
+                      + "Après l'annulation, l'impression revient au redémarrage suivant.",
+            Category = TweakCategory.Background,
+            Risk = TweakRisk.Advanced,
+            RequiresReboot = true,
+            Operations = () => [new ServiceStartOp("Spooler", System.ServiceProcess.ServiceStartMode.Disabled)],
+        },
 
         // ---------------- Explorateur & interface ----------------
         new()
@@ -284,6 +310,21 @@ public static class TweakCatalog
                 RegistryValueOp.Hkcu(ExplorerKey, "ShowRecent", 0),
                 RegistryValueOp.Hkcu(ExplorerKey, "ShowFrequent", 0),
                 RegistryValueOp.Hkcu(ExplorerKey, "ShowCloudFilesInQuickAccess", 0),
+            ],
+        },
+        new()
+        {
+            Id = "ui.animations",
+            Title = "Réduire les animations de Windows",
+            Description = "Les fenêtres s'ouvrent et se réduisent sans animation, la barre des tâches n'anime plus ses boutons "
+                          + "et l'aperçu du bureau (Aero Peek) est désactivé.",
+            Category = TweakCategory.Explorer,
+            RequiresReboot = true,
+            Operations = () =>
+            [
+                RegistryValueOp.Hkcu(@"Control Panel\Desktop\WindowMetrics", "MinAnimate", "0", RegistryValueKind.String),
+                RegistryValueOp.Hkcu(ExplorerKey + @"\Advanced", "TaskbarAnimations", 0),
+                RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\DWM", "EnableAeroPeek", 0),
             ],
         },
 
@@ -397,6 +438,29 @@ public static class TweakCatalog
                 RegistryValueOp.Hklm(@"SOFTWARE\Policies\Mozilla\Firefox", "DisableDefaultBrowserAgent", 1),
             ]),
         },
+        new()
+        {
+            Id = "privacy.feedback",
+            Title = "Ne plus demander mon avis",
+            Description = "Windows n'affiche plus de notifications pour te demander ton avis sur le système (Hub de commentaires).",
+            Category = TweakCategory.Privacy,
+            Operations = () =>
+            [
+                RegistryValueOp.Hkcu(@"Software\Microsoft\Siuf\Rules", "NumberOfSIUFInPeriod", 0),
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "DoNotShowFeedbackNotifications", 1),
+            ],
+        },
+        new()
+        {
+            Id = "adv.location",
+            Title = "Désactiver la localisation",
+            Description = "Plus aucune application ni Windows ne peut connaître la position du PC.",
+            Warning = "La météo locale, les cartes, « Localiser mon appareil » et le réglage automatique du fuseau horaire "
+                      + "ne fonctionnent plus.",
+            Category = TweakCategory.Privacy,
+            Risk = TweakRisk.Advanced,
+            Operations = () => [RegistryValueOp.Hklm(@"SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors", "DisableLocation", 1)],
+        },
 
         // ---------------- Réseau ----------------
         new()
@@ -440,6 +504,24 @@ public static class TweakCatalog
             RequiresReboot = true,
             Operations = () => [.. AdapterKeysWith("*InterruptModeration").Select(path =>
                 new RegistryValueOp(RegistryHive.LocalMachine, path, "*InterruptModeration", "0", RegistryValueKind.String))],
+        },
+        new()
+        {
+            Id = "net.delivery-optimization",
+            Title = "Désactiver le partage des mises à jour",
+            Description = "Windows Update ne partage plus les mises à jour avec d'autres PC (Optimisation de la distribution) "
+                          + "et n'utilise donc plus ta bande passante montante en arrière-plan.",
+            Category = TweakCategory.Network,
+            Operations = () => [RegistryValueOp.Hklm(@"SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization", "DODownloadMode", 0)],
+        },
+        new()
+        {
+            Id = "net.adapter-power-saving",
+            Title = "Désactiver l'économie d'énergie de la carte réseau",
+            Description = "Windows ne peut plus éteindre la carte réseau pour économiser l'énergie, ni la laisser réveiller le PC.",
+            Category = TweakCategory.Network,
+            RequiresReboot = true,
+            Operations = () => [.. PciAdapterKeys().Select(path => RegistryValueOp.Hklm(path, "PnPCapabilities", 24))],
         },
 
         // ---------------- GPU, jeux & souris ----------------
@@ -561,6 +643,14 @@ public static class TweakCatalog
             .Where(name => name.All(char.IsDigit))
             .Select(name => $@"{NetAdapterClass}\{name}")
             .Where(path => RegistryAccess.Read(RegistryHive.LocalMachine, path, valueName) is not null);
+
+    /// <summary>Network cards plugged into the motherboard, which skips virtual adapters and USB devices such as phones.</summary>
+    private static IEnumerable<string> PciAdapterKeys() =>
+        RegistryAccess.SubKeyNames(RegistryHive.LocalMachine, NetAdapterClass)
+            .Where(name => name.All(char.IsDigit))
+            .Select(name => $@"{NetAdapterClass}\{name}")
+            .Where(path => RegistryAccess.Read(RegistryHive.LocalMachine, path, "DeviceInstanceID") is string id
+                           && id.StartsWith(@"PCI\", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Registry changes to the mouse only apply at next logon unless broadcast.</summary>
     private static void ApplyMouseSettingsLive()

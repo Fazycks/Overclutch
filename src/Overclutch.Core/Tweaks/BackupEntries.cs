@@ -52,6 +52,10 @@ public sealed record RegistryBackup(RegistryHive Hive, string Path, string Name,
 
     public override void Restore()
     {
+        // Untouched values are skipped: some keys (locked service keys...) refuse even a same-value write.
+        if (Read(Hive, Path, Name) == this)
+            return;
+
         if (Kind is not { } kind)
         {
             using var existing = RegistryAccess.Open(Hive, Path, writable: true);

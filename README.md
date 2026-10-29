@@ -42,10 +42,10 @@ entièrement original et le projet n'est affilié à aucun éditeur.
 | Catégorie | Profil « Optimiser mon PC » | Page Avancé |
 |---|---|---|
 | Système et processeur | Plan d'alimentation Overclutch, priorité au premier plan, planificateur multimédia orienté jeux, Power Throttling | Core parking, dynamic tick, HPET, résolution du timer globale |
-| Services et arrière-plan | Télémétrie Windows, tâches planifiées de télémétrie, assistant de compatibilité des programmes, Game DVR, suggestions et pubs, rapport d'erreurs | Apps du Store en arrière-plan, SysMain, indexation de la recherche |
-| Explorateur et interface | Délai des apps au démarrage, transparence, menus plus réactifs, ouverture des gros dossiers, pubs de l'Explorateur | Fichiers récents de l'Explorateur |
-| Confidentialité et pubs | Identifiant publicitaire, expériences personnalisées, contenu suggéré dans Paramètres, résultats web de la recherche, historique d'activités, télémétrie Office | Edge et Chrome en arrière-plan, télémétrie Chrome et Firefox |
-| Réseau | Bridage réseau multimédia, algorithme de Nagle, Ethernet économe en énergie | Modération d'interruptions |
+| Services et arrière-plan | Télémétrie Windows, tâches planifiées de télémétrie, assistant de compatibilité des programmes, services inutiles, Game DVR, suggestions et pubs, rapport d'erreurs | Apps du Store en arrière-plan, SysMain, indexation de la recherche, spouleur d'impression |
+| Explorateur et interface | Délai des apps au démarrage, transparence, menus plus réactifs, ouverture des gros dossiers, pubs de l'Explorateur, animations | Fichiers récents de l'Explorateur |
+| Confidentialité et pubs | Identifiant publicitaire, expériences personnalisées, contenu suggéré dans Paramètres, résultats web de la recherche, historique d'activités, télémétrie Office, demandes d'avis | Edge et Chrome en arrière-plan, télémétrie Chrome et Firefox, localisation |
+| Réseau | Bridage réseau multimédia, algorithme de Nagle, Ethernet économe en énergie, économie d'énergie de la carte réseau, partage des mises à jour | Modération d'interruptions |
 | GPU, jeux et souris | HAGS, Mode Jeu Windows, accélération de la souris, NVIDIA faible latence, NVIDIA filtrage de texture | NVIDIA performances maximales, Multiplane Overlays, optimisations plein écran |
 
 Overclutch ne désactive jamais Windows Defender, Windows Update ni les protections de sécurité du processeur.

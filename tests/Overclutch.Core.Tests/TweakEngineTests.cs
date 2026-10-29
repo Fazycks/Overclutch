@@ -1,3 +1,5 @@
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Microsoft.Win32;
 using Overclutch.Core.Native;
 using Overclutch.Core.Tweaks;
@@ -80,6 +82,27 @@ public sealed class TweakEngineTests : IDisposable
         Assert.Equal(new[] { "a", "b" }, Read("Multi"));
         Assert.Equal(0xFFFFFFFFL, Read("Big"));
         Assert.Equal(RegistryValueKind.MultiString, RegistryAccess.Open(RegistryHive.CurrentUser, _keyPath, false)!.GetValueKind("Multi"));
+    }
+
+    [Fact]
+    public void Reverting_skips_values_that_were_already_applied_on_a_locked_key()
+    {
+        Write("Locked", 1, RegistryValueKind.DWord);
+        var engine = new TweakEngine(new BackupStore(_backupFile));
+        var tweak = MakeTweak(RegistryValueOp.Hkcu(_keyPath, "Locked", 1));
+        engine.Apply(tweak);
+
+        using (var key = RegistryAccess.Open(RegistryHive.CurrentUser, _keyPath, writable: true)!)
+        {
+            var security = key.GetAccessControl();
+            security.AddAccessRule(new RegistryAccessRule(WindowsIdentity.GetCurrent().User!, RegistryRights.SetValue,
+                AccessControlType.Deny));
+            key.SetAccessControl(security);
+        }
+
+        engine.Revert(tweak);
+        Assert.Equal(1, Read("Locked"));
+        Assert.False(engine.CanRevert(tweak));
     }
 
     [Fact]
