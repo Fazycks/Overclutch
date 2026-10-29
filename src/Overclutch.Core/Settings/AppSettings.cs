@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Overclutch.Core.GameMode;
 using Overclutch.Core.Maintenance;
 
 namespace Overclutch.Core.Settings;
@@ -7,11 +9,20 @@ public sealed class AppSettings
 {
     public bool GameModeEnabled { get; set; } = true;
 
-    /// <summary>Switch to the Overclutch power plan while a game runs.</summary>
-    public bool GameModeBoostPowerPlan { get; set; } = true;
+    public GameModeLevel GameModeLevel { get; set; } = GameModeLevel.Balanced;
 
-    /// <summary>Lower the priority of <see cref="BackgroundApps"/> while a game runs.</summary>
-    public bool GameModeLowerBackgroundApps { get; set; } = true;
+    /// <summary>Options of the custom level, kept while another level is picked.</summary>
+    public GameModeOptions GameModeCustom { get; set; } = GameModeOptions.Balanced;
+
+    [JsonIgnore]
+    public GameModeOptions GameModeOptions => GameModeOptions.For(GameModeLevel, GameModeCustom);
+
+    // Up to v0.3.0 these two options were the only ones, and turning one off now means a custom level.
+    [JsonInclude, JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private bool? GameModeBoostPowerPlan { get; set; }
+
+    [JsonInclude, JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private bool? GameModeLowerBackgroundApps { get; set; }
 
     /// <summary>Executables (without .exe) treated as games even outside known game libraries.</summary>
     public List<string> ExtraGames { get; set; } = [];
@@ -36,9 +47,7 @@ public sealed class AppSettings
     {
         try
         {
-            return File.Exists(FilePath)
-                ? JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath), JsonOptions) ?? new()
-                : new();
+            return File.Exists(FilePath) ? Parse(File.ReadAllText(FilePath)) : new();
         }
         catch (JsonException)
         {
@@ -46,9 +55,27 @@ public sealed class AppSettings
         }
     }
 
+    public static AppSettings Parse(string json)
+    {
+        var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new();
+        if (settings.GameModeBoostPowerPlan is false || settings.GameModeLowerBackgroundApps is false)
+        {
+            settings.GameModeLevel = GameModeLevel.Custom;
+            settings.GameModeCustom = GameModeOptions.Balanced with
+            {
+                BoostPowerPlan = settings.GameModeBoostPowerPlan ?? true,
+                LowerBackgroundApps = settings.GameModeLowerBackgroundApps ?? true,
+            };
+        }
+        settings.GameModeBoostPowerPlan = settings.GameModeLowerBackgroundApps = null;
+        return settings;
+    }
+
+    public string ToJson() => JsonSerializer.Serialize(this, JsonOptions);
+
     public void Save()
     {
         Directory.CreateDirectory(AppPaths.DataDirectory);
-        File.WriteAllText(FilePath, JsonSerializer.Serialize(this, JsonOptions));
+        File.WriteAllText(FilePath, ToJson());
     }
 }

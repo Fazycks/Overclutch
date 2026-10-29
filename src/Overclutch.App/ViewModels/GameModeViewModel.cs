@@ -29,26 +29,53 @@ public sealed partial class GameModeViewModel : ObservableObject
         set => Services.SetGameModeEnabled(value);
     }
 
+    public bool IsBalanced
+    {
+        get => Settings.GameModeLevel == GameModeLevel.Balanced;
+        set => SetLevel(value, GameModeLevel.Balanced);
+    }
+
+    public bool IsPerformance
+    {
+        get => Settings.GameModeLevel == GameModeLevel.Performance;
+        set => SetLevel(value, GameModeLevel.Performance);
+    }
+
+    public bool IsCustom
+    {
+        get => Settings.GameModeLevel == GameModeLevel.Custom;
+        set => SetLevel(value, GameModeLevel.Custom);
+    }
+
+    // The switches show what the current level does; changing one turns it into the custom level.
+    public bool RaisePriority
+    {
+        get => Settings.GameModeOptions.RaisePriority;
+        set => Customize(Settings.GameModeOptions with { RaisePriority = value });
+    }
+
     public bool BoostPowerPlan
     {
-        get => Settings.GameModeBoostPowerPlan;
-        set
-        {
-            Settings.GameModeBoostPowerPlan = value;
-            Settings.Save();
-            OnPropertyChanged();
-        }
+        get => Settings.GameModeOptions.BoostPowerPlan;
+        set => Customize(Settings.GameModeOptions with { BoostPowerPlan = value });
     }
 
     public bool LowerBackgroundApps
     {
-        get => Settings.GameModeLowerBackgroundApps;
-        set
-        {
-            Settings.GameModeLowerBackgroundApps = value;
-            Settings.Save();
-            OnPropertyChanged();
-        }
+        get => Settings.GameModeOptions.LowerBackgroundApps;
+        set => Customize(Settings.GameModeOptions with { LowerBackgroundApps = value });
+    }
+
+    public bool PurgeStandbyMemory
+    {
+        get => Settings.GameModeOptions.PurgeStandbyMemory;
+        set => Customize(Settings.GameModeOptions with { PurgeStandbyMemory = value });
+    }
+
+    public bool PauseServices
+    {
+        get => Settings.GameModeOptions.PauseServices;
+        set => Customize(Settings.GameModeOptions with { PauseServices = value });
     }
 
     [ObservableProperty]
@@ -91,6 +118,30 @@ public sealed partial class GameModeViewModel : ObservableObject
     }
 
     private void UpdateSession() => Session = Services.GameMode.Current;
+
+    private void SetLevel(bool selected, GameModeLevel level)
+    {
+        if (!selected || Settings.GameModeLevel == level)
+            return;
+        Settings.GameModeLevel = level;
+        Settings.Save();
+        RefreshLevel();
+    }
+
+    private void Customize(GameModeOptions options)
+    {
+        Settings.GameModeCustom = options;
+        Settings.GameModeLevel = GameModeLevel.Custom;
+        Settings.Save();
+        RefreshLevel();
+    }
+
+    private void RefreshLevel()
+    {
+        foreach (var name in (string[])[nameof(IsBalanced), nameof(IsPerformance), nameof(IsCustom), nameof(RaisePriority),
+                     nameof(BoostPowerPlan), nameof(LowerBackgroundApps), nameof(PurgeStandbyMemory), nameof(PauseServices)])
+            OnPropertyChanged(name);
+    }
 
     /// <summary>One executable per line or comma; ".exe" is optional.</summary>
     private static List<string> ParseList(string text) =>

@@ -31,8 +31,10 @@ entièrement original et le projet n'est affilié à aucun éditeur.
 - **Réglages détaillés** : chaque optimisation s'active ou s'annule séparément, avec ce qu'elle modifie.
 - **Page Avancé** : réglages débattus ou dépendants du matériel, jamais appliqués automatiquement, avec un
   avertissement sur les risques.
-- **Mode jeu automatique** : détecte le jeu lancé, lui donne la priorité, passe en performances maximales et
-  rétablit tout à sa fermeture.
+- **Mode jeu automatique** : détecte le jeu lancé, même installé ailleurs que dans le dossier par défaut de son
+  launcher, et rétablit tout à sa fermeture. Trois niveaux : Équilibré
+  (priorité au jeu, plan d'alimentation performance, applis calmées), Performance (en plus : RAM en cache vidée,
+  mises à jour et indexation en pause) ou Personnalisé.
 - **Matériel et suivi en temps réel** : processeur, mémoire, carte graphique NVIDIA.
 - **Entretien** : fichiers temporaires, cache de Windows Update, rapports d'erreurs, vidages mémoire, corbeille,
   cache des shaders DirectX et NVIDIA, mémoire en attente et cache DNS. Analyse de l'espace récupérable, lancement

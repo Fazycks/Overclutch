@@ -58,6 +58,11 @@ internal static partial class NativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static partial bool QueryFullProcessImageName(nint process, uint flags, [Out] char[] exeName, ref uint size);
 
+    internal const int SystemProcessIdInformation = 88;
+
+    [LibraryImport("kernel32.dll", EntryPoint = "QueryDosDeviceW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial uint QueryDosDevice(string deviceName, [Out] char[] targetPath, uint max);
+
     // ---- memory ----
 
     [StructLayout(LayoutKind.Sequential)]
@@ -105,6 +110,9 @@ internal static partial class NativeMethods
     internal const uint SherbNoConfirmation = 0x1;
     internal const uint SherbNoProgressUi = 0x2;
     internal const uint SherbNoSound = 0x4;
+
+    [LibraryImport("shell32.dll")]
+    internal static partial int SHQueryUserNotificationState(out int state);
 
     [LibraryImport("shell32.dll", EntryPoint = "SHQueryRecycleBinW", StringMarshalling = StringMarshalling.Utf16)]
     internal static partial int SHQueryRecycleBin(string? rootPath, ref ShQueryRbInfo info);

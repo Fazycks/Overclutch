@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using Overclutch.Core.Maintenance;
 using Overclutch.Core.Native;
 using Overclutch.Core.Settings;
 
@@ -13,13 +14,22 @@ public sealed record GameSession(int ProcessId, string Name, string Path, DateTi
 public sealed class GameModeService(Func<AppSettings> settings) : IDisposable
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan LibrariesRefresh = TimeSpan.FromMinutes(1);
+
+    /// <summary>Search indexing, Windows Update and the transfers it runs through: disk and network bursts.</summary>
+    private static readonly string[] PausedServices = ["WSearch", "wuauserv", "BITS", "DoSvc"];
 
     private readonly Lock _lock = new();
-    private readonly Dictionary<int, string?> _gamePaths = [];
+    private readonly Dictionary<int, GameMatch?> _games = [];
     private readonly List<(Process Process, ProcessPriorityClass Original)> _lowered = [];
+    private readonly List<string> _paused = [];
     private Timer? _timer;
     private Process? _game;
     private Guid? _previousPowerPlan;
+    private IReadOnlyList<GameInstall> _installs = [];
+    private DateTime _installsReadAt = DateTime.MinValue;
+
+    private sealed record GameMatch(string Path, string Name);
 
     public event Action<GameSession>? GameStarted;
     public event Action<GameSession>? GameEnded;
@@ -44,13 +54,13 @@ public sealed class GameModeService(Func<AppSettings> settings) : IDisposable
             {
                 if (Current is not null)
                 {
-                    if (_game is null || _game.HasExited)
+                    if (_game is null || GameExited(_game))
                         EndSession();
                     return;
                 }
 
                 if (settings().GameModeEnabled && FindGame() is { } game)
-                    StartSession(game.Process, game.Path);
+                    StartSession(game.Process, game.Match);
             }
             catch (Exception e)
             {
@@ -59,12 +69,20 @@ public sealed class GameModeService(Func<AppSettings> settings) : IDisposable
         }
     }
 
-    private (Process Process, string Path)? FindGame()
+    private (Process Process, GameMatch Match)? FindGame()
     {
+        // A game installed or moved meanwhile shows up at the next read; processes are looked at again too.
+        if (DateTime.UtcNow - _installsReadAt > LibrariesRefresh)
+        {
+            _installs = GameLibraries.Discover();
+            _installsReadAt = DateTime.UtcNow;
+            _games.Clear();
+        }
+
         var extraGames = settings().ExtraGames;
         var processes = Process.GetProcesses();
         var alive = new HashSet<int>();
-        (Process, string)? found = null;
+        (Process, GameMatch)? found = null;
 
         foreach (var process in processes)
         {
@@ -72,35 +90,38 @@ public sealed class GameModeService(Func<AppSettings> settings) : IDisposable
             if (found is not null || process.Id <= 4 || process.Id == Environment.ProcessId)
                 continue;
 
-            if (!_gamePaths.TryGetValue(process.Id, out var gamePath))
+            if (!_games.TryGetValue(process.Id, out var match))
             {
-                var path = ImagePath(process.Id);
-                gamePath = path is not null && GameDetector.IsGame(path, extraGames) ? path : null;
-                _gamePaths[process.Id] = gamePath;
+                var path = ProcessImage.PathOf(process.Id);
+                match = path is not null && GameDetector.IsGame(path, extraGames, _installs)
+                    ? new GameMatch(path, GameDetector.InstallOf(path, _installs)?.Name ?? Path.GetFileNameWithoutExtension(path))
+                    : null;
+                _games[process.Id] = match;
             }
 
             // A game is only "running" once it has a window; until then keep checking.
-            if (gamePath is not null && SafeHasWindow(process))
-                found = (process, gamePath);
+            if (match is not null && SafeHasWindow(process))
+                found = (process, match);
         }
 
-        foreach (var pid in _gamePaths.Keys.Where(pid => !alive.Contains(pid)).ToList())
-            _gamePaths.Remove(pid);
+        foreach (var pid in _games.Keys.Where(pid => !alive.Contains(pid)).ToList())
+            _games.Remove(pid);
 
         foreach (var process in processes.Where(p => found is null || p.Id != found.Value.Item1.Id))
             process.Dispose();
         return found;
     }
 
-    private void StartSession(Process game, string path)
+    private void StartSession(Process game, GameMatch match)
     {
         var current = settings();
+        var options = current.GameModeOptions;
         var actions = new List<string>();
 
-        if (TrySetPriority(game, ProcessPriorityClass.High) is not null)
+        if (options.RaisePriority && TrySetPriority(game, ProcessPriorityClass.High) is not null)
             actions.Add("Priorité CPU du jeu : haute");
 
-        if (current.GameModeBoostPowerPlan)
+        if (options.BoostPowerPlan)
         {
             var active = PowerPlans.GetActive();
             var plan = PowerPlans.EnsureOverclutchPlan();
@@ -112,7 +133,7 @@ public sealed class GameModeService(Func<AppSettings> settings) : IDisposable
             }
         }
 
-        if (current.GameModeLowerBackgroundApps)
+        if (options.LowerBackgroundApps)
         {
             var names = current.BackgroundApps.Select(GameDetector.TrimExe).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var process in Process.GetProcesses())
@@ -126,8 +147,29 @@ public sealed class GameModeService(Func<AppSettings> settings) : IDisposable
                 actions.Add($"{_lowered.Count} processus d'arrière-plan en priorité basse");
         }
 
+        if (options.PurgeStandbyMemory)
+        {
+            try
+            {
+                actions.Add($"Mémoire en attente vidée ({SizeText.Format(Cleanup.PurgeStandbyMemory())})");
+            }
+            catch (Exception e) when (e is Win32Exception or InvalidOperationException)
+            {
+                Trace.WriteLine($"Mode jeu : {e.Message}");
+            }
+        }
+
+        if (options.PauseServices)
+        {
+            foreach (var name in PausedServices)
+                if (WindowsServices.Pause(name, TimeSpan.FromSeconds(10)))
+                    _paused.Add(name);
+            if (_paused.Count(WindowsServices.IsStopped) is var count and > 0)
+                actions.Add(count == 1 ? "1 service d'arrière-plan en pause" : $"{count} services d'arrière-plan en pause");
+        }
+
         _game = game;
-        Current = new GameSession(game.Id, Path.GetFileNameWithoutExtension(path), path, DateTime.Now, actions);
+        Current = new GameSession(game.Id, match.Name, match.Path, DateTime.Now, actions);
         GameStarted?.Invoke(Current);
     }
 
@@ -143,6 +185,10 @@ public sealed class GameModeService(Func<AppSettings> settings) : IDisposable
             process.Dispose();
         }
         _lowered.Clear();
+
+        foreach (var name in _paused)
+            WindowsServices.Resume(name);
+        _paused.Clear();
 
         if (_previousPowerPlan is { } previous && PowerPlans.Exists(previous))
             PowerPlans.SetActive(previous);
@@ -181,20 +227,21 @@ public sealed class GameModeService(Func<AppSettings> settings) : IDisposable
         catch (Exception e) when (e is Win32Exception or InvalidOperationException) { return true; }
     }
 
-    private static string? ImagePath(int pid)
+    /// <summary>
+    /// An anti-cheat can refuse even the handle needed to watch its game; it has then exited once its ID is gone
+    /// or taken by another program.
+    /// </summary>
+    private static bool GameExited(Process game)
     {
-        var handle = NativeMethods.OpenProcess(NativeMethods.ProcessQueryLimitedInformation, false, pid);
-        if (handle == 0)
-            return null;
-        try
+        try { return game.HasExited; }
+        catch (Exception e) when (e is Win32Exception or InvalidOperationException)
         {
-            var buffer = new char[1024];
-            var size = (uint)buffer.Length;
-            return NativeMethods.QueryFullProcessImageName(handle, 0, buffer, ref size) ? new string(buffer, 0, (int)size) : null;
-        }
-        finally
-        {
-            NativeMethods.CloseHandle(handle);
+            try
+            {
+                using var current = Process.GetProcessById(game.Id);
+                return current.ProcessName != game.ProcessName;
+            }
+            catch (ArgumentException) { return true; }
         }
     }
 

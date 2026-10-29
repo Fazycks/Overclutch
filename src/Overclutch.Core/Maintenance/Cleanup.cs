@@ -1,4 +1,3 @@
-using System.ServiceProcess;
 using Overclutch.Core.Native;
 
 namespace Overclutch.Core.Maintenance;
@@ -86,22 +85,8 @@ public static class Cleanup
     /// if it was running.</summary>
     public static long WithServiceStopped(string serviceName, Func<long> work)
     {
-        using var service = new ServiceController(serviceName);
-        var wasRunning = false;
-        try
-        {
-            wasRunning = service.Status != ServiceControllerStatus.Stopped;
-            if (wasRunning && service.CanStop)
-            {
-                service.Stop();
-                service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30));
-            }
-        }
-        catch (Exception e) when (e is InvalidOperationException or System.ServiceProcess.TimeoutException)
-        {
-            // Still running: files in use are skipped anyway.
-        }
-
+        // A service that refuses to stop keeps its files: they are skipped as files in use.
+        var wasRunning = WindowsServices.Pause(serviceName, TimeSpan.FromSeconds(30));
         try
         {
             return work();
@@ -109,18 +94,7 @@ public static class Cleanup
         finally
         {
             if (wasRunning)
-            {
-                try
-                {
-                    service.Refresh();
-                    if (service.Status == ServiceControllerStatus.Stopped)
-                        service.Start();
-                }
-                catch (InvalidOperationException)
-                {
-                    // Trigger-started services come back on their own when needed.
-                }
-            }
+                WindowsServices.Resume(serviceName);
         }
     }
 

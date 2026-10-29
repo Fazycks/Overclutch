@@ -23,7 +23,8 @@ public static class GameDetector
         "updater", "webhelper", "overlay", "cefprocess", "epicwebhelper", "battle.net",
     ];
 
-    public static bool IsGame(string exePath, IEnumerable<string> extraGames)
+    /// <param name="installs">Game folders the launchers know about, wherever they are (<see cref="GameLibraries"/>).</param>
+    public static bool IsGame(string exePath, IEnumerable<string> extraGames, IEnumerable<GameInstall>? installs = null)
     {
         var name = Path.GetFileNameWithoutExtension(exePath);
         if (extraGames.Any(g => string.Equals(TrimExe(g), name, StringComparison.OrdinalIgnoreCase)))
@@ -32,8 +33,13 @@ public static class GameDetector
         if (ExcludedNameParts.Any(part => name.Contains(part, StringComparison.OrdinalIgnoreCase)))
             return false;
 
-        return LibraryMarkers.Any(marker => exePath.Contains(marker, StringComparison.OrdinalIgnoreCase));
+        return LibraryMarkers.Any(marker => exePath.Contains(marker, StringComparison.OrdinalIgnoreCase))
+            || InstallOf(exePath, installs ?? []) is not null;
     }
+
+    /// <summary>The innermost known game folder holding this executable.</summary>
+    public static GameInstall? InstallOf(string exePath, IEnumerable<GameInstall> installs) =>
+        installs.Where(i => i.Contains(exePath)).MaxBy(i => i.Directory.Length);
 
     public static string TrimExe(string name) =>
         name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? name[..^4] : name;

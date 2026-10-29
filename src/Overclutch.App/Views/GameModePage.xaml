@@ -4,11 +4,37 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       Title="Mode jeu">
+    <Page.Resources>
+        <!-- A level is a card that lights up its border when picked -->
+        <Style x:Key="LevelCard" TargetType="RadioButton">
+            <Setter Property="GroupName" Value="GameModeLevel" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Card" CornerRadius="8" Padding="16,14" BorderThickness="2"
+                                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Card" Property="Background" Value="{DynamicResource CardBackgroundFillColorSecondaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="32,24,32,32" MaxWidth="980">
             <TextBlock Text="Mode jeu automatique" Style="{StaticResource PageTitle}" />
             <TextBlock Style="{StaticResource PageSubtitle}"
-                       Text="Quand un jeu se lance, Overclutch lui donne la priorité, passe en plan d'alimentation performance et calme les applis en arrière-plan. Tout revient comme avant à la fermeture du jeu." />
+                       Text="Quand un jeu se lance, Overclutch lui laisse le plus de ressources possible. Tout revient comme avant à la fermeture du jeu." />
 
             <ui:CardControl Padding="16,14">
                 <ui:CardControl.Icon>
@@ -34,7 +60,55 @@
                 </StackPanel>
             </ui:Card>
 
+            <TextBlock Text="Niveau" Style="{StaticResource SectionTitle}" />
+            <UniformGrid Columns="3">
+                <RadioButton Style="{StaticResource LevelCard}" IsChecked="{Binding IsBalanced}" Margin="0,0,4,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Scales24" FontSize="20" Margin="0,0,8,0"
+                                           Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Text="Équilibré" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="Priorité au jeu, plan d'alimentation performance et applis calmées. Le bon choix pour la plupart des PC." />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton Style="{StaticResource LevelCard}" IsChecked="{Binding IsPerformance}" Margin="4,0,4,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Flash24" FontSize="20" Margin="0,0,8,0"
+                                           Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Text="Performance" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="Équilibré, plus la RAM en cache vidée au lancement et les mises à jour et l'indexation en pause." />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton Style="{StaticResource LevelCard}" IsChecked="{Binding IsCustom}" Margin="4,0,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Options24" FontSize="20" Margin="0,0,8,0"
+                                           Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Text="Personnalisé" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="Tu choisis chaque action ci-dessous. Elles sont gardées si tu changes de niveau puis reviens." />
+                    </StackPanel>
+                </RadioButton>
+            </UniformGrid>
+
             <TextBlock Text="Pendant une partie" Style="{StaticResource SectionTitle}" />
+            <TextBlock Style="{StaticResource Caption}" Margin="0,-4,0,8"
+                       Text="Modifier une action passe en Personnalisé. Les changements s'appliquent à la prochaine partie." />
+            <ui:CardControl Padding="16,12" Margin="0,0,0,6">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="Priorité haute pour le jeu" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Text="Le processeur sert le jeu avant les autres applis. Certains anti-triche refusent : le jeu garde alors sa priorité." Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding RaisePriority}" />
+            </ui:CardControl>
             <ui:CardControl Padding="16,12" Margin="0,0,0,6">
                 <ui:CardControl.Header>
                     <StackPanel>
@@ -52,6 +126,24 @@
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:ToggleSwitch IsChecked="{Binding LowerBackgroundApps}" />
+            </ui:CardControl>
+            <ui:CardControl Padding="16,12" Margin="0,0,0,6">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="Vider la mémoire en attente au lancement" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Text="Libère la RAM que Windows garde en cache pour que le jeu la trouve libre. Utile surtout avec 16 Go ou moins." Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding PurgeStandbyMemory}" />
+            </ui:CardControl>
+            <ui:CardControl Padding="16,12" Margin="0,0,0,6">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="Mettre en pause les mises à jour et l'indexation" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Text="Arrête Windows Update, ses téléchargements et l'indexation de la recherche pendant la partie, puis les relance." Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding PauseServices}" />
             </ui:CardControl>
 
             <TextBlock Text="Listes" Style="{StaticResource SectionTitle}" />
