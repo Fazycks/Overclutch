@@ -4,6 +4,7 @@ public enum TweakCategory
 {
     System,
     Background,
+    Privacy,
     Network,
     GpuGamingInput,
 }

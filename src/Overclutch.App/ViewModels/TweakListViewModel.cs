@@ -49,6 +49,7 @@ public sealed partial class TweakListViewModel : ObservableObject
     {
         TweakCategory.System => "Système et processeur",
         TweakCategory.Background => "Services et arrière-plan",
+        TweakCategory.Privacy => "Confidentialité et pubs",
         TweakCategory.Network => "Réseau",
         TweakCategory.GpuGamingInput => "GPU, jeux et souris",
         _ => category.ToString(),
@@ -58,6 +59,7 @@ public sealed partial class TweakListViewModel : ObservableObject
     {
         TweakCategory.System => SymbolRegular.DeveloperBoard24,
         TweakCategory.Background => SymbolRegular.Broom24,
+        TweakCategory.Privacy => SymbolRegular.ShieldLock24,
         TweakCategory.Network => SymbolRegular.Wifi124,
         TweakCategory.GpuGamingInput => SymbolRegular.Games24,
         _ => SymbolRegular.Options24,

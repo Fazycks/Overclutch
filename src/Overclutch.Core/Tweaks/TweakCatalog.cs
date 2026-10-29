@@ -10,6 +10,7 @@ public static class TweakCatalog
     private const string SystemProfile = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile";
     private const string GameConfigStore = @"System\GameConfigStore";
     private const string TcpInterfaces = @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces";
+    private const string AppPathsKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
     private const string NetAdapterClass = @"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}";
     private static readonly Guid CoreParkingMinCores = new("0cc5b647-c1df-4637-891a-dec35c318583");
 
@@ -177,6 +178,125 @@ public static class TweakCatalog
             Risk = TweakRisk.Advanced,
             Operations = () => [new ServiceStartOp("SysMain", System.ServiceProcess.ServiceStartMode.Disabled)],
         },
+        new()
+        {
+            Id = "bg.error-reporting",
+            Title = "Désactiver le rapport d'erreurs Windows",
+            Description = "Après un plantage, Windows n'analyse plus l'application et n'envoie plus de rapport à Microsoft (WerFault).",
+            Category = TweakCategory.Background,
+            Operations = () => [RegistryValueOp.Hklm(@"SOFTWARE\Microsoft\Windows\Windows Error Reporting", "Disabled", 1)],
+        },
+
+        // ---------------- Confidentialité & pubs ----------------
+        new()
+        {
+            Id = "privacy.advertising-id",
+            Title = "Désactiver l'identifiant publicitaire",
+            Description = "Les applications ne peuvent plus utiliser ton identifiant publicitaire pour afficher des pubs ciblées.",
+            Category = TweakCategory.Privacy,
+            Operations = () => [RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 0)],
+        },
+        new()
+        {
+            Id = "privacy.tailored-experiences",
+            Title = "Désactiver les expériences personnalisées",
+            Description = "Microsoft n'utilise plus tes données de diagnostic pour te proposer des astuces, pubs et recommandations.",
+            Category = TweakCategory.Privacy,
+            Operations = () => [RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\CurrentVersion\Privacy", "TailoredExperiencesWithDiagnosticDataEnabled", 0)],
+        },
+        new()
+        {
+            Id = "privacy.settings-suggestions",
+            Title = "Masquer le contenu suggéré dans Paramètres",
+            Description = "Plus de suggestions ni de promotions de services Microsoft dans l'application Paramètres.",
+            Category = TweakCategory.Privacy,
+            Operations = () =>
+            [
+                RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338393Enabled", 0),
+                RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-353694Enabled", 0),
+                RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-353696Enabled", 0),
+            ],
+        },
+        new()
+        {
+            Id = "privacy.web-search",
+            Title = "Retirer les résultats web de la recherche",
+            Description = "La recherche du menu Démarrer ne cherche plus sur Bing : seulement tes applications, fichiers et paramètres.",
+            Category = TweakCategory.Privacy,
+            RequiresReboot = true,
+            Operations = () =>
+            [
+                RegistryValueOp.Hkcu(@"Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions", 1),
+                RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\CurrentVersion\Search", "BingSearchEnabled", 0),
+            ],
+        },
+        new()
+        {
+            Id = "privacy.activity-history",
+            Title = "Désactiver l'historique d'activités",
+            Description = "Windows n'enregistre plus les applications et documents que tu ouvres et ne les envoie plus à Microsoft.",
+            Category = TweakCategory.Privacy,
+            Operations = () =>
+            [
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Microsoft\Windows\System", "PublishUserActivities", 0),
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Microsoft\Windows\System", "UploadUserActivities", 0),
+            ],
+        },
+        new()
+        {
+            Id = "privacy.office-telemetry",
+            Title = "Couper la télémétrie de Microsoft Office",
+            Description = "Word, Excel, Outlook... n'envoient plus de données de diagnostic à Microsoft.",
+            Category = TweakCategory.Privacy,
+            Operations = () => IfInstalled("winword.exe",
+            [
+                RegistryValueOp.Hkcu(@"Software\Policies\Microsoft\office\common\clienttelemetry", "SendTelemetry", 3),
+                RegistryValueOp.Hkcu(@"Software\Policies\Microsoft\office\common\clienttelemetry", "DisableTelemetry", 1),
+            ]),
+        },
+        new()
+        {
+            Id = "adv.edge-background",
+            Title = "Edge : ne plus tourner en arrière-plan",
+            Description = "Microsoft Edge ne se précharge plus au démarrage de Windows et se ferme vraiment quand tu fermes sa fenêtre.",
+            Warning = "Edge affichera « Votre navigateur est géré par votre organisation ». Ses extensions et notifications "
+                      + "ne fonctionnent plus quand il est fermé.",
+            Category = TweakCategory.Privacy,
+            Risk = TweakRisk.Advanced,
+            Operations = () =>
+            [
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Microsoft\Edge", "StartupBoostEnabled", 0),
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Microsoft\Edge", "BackgroundModeEnabled", 0),
+            ],
+        },
+        new()
+        {
+            Id = "adv.chrome-background",
+            Title = "Chrome : arrière-plan et télémétrie",
+            Description = "Google Chrome se ferme vraiment quand tu fermes sa fenêtre et n'envoie plus de statistiques d'utilisation.",
+            Warning = "Chrome affichera « Géré par votre organisation ». Ses extensions et notifications ne fonctionnent plus quand il est fermé.",
+            Category = TweakCategory.Privacy,
+            Risk = TweakRisk.Advanced,
+            Operations = () => IfInstalled("chrome.exe",
+            [
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Google\Chrome", "BackgroundModeEnabled", 0),
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Google\Chrome", "MetricsReportingEnabled", 0),
+            ]),
+        },
+        new()
+        {
+            Id = "adv.firefox-telemetry",
+            Title = "Firefox : couper la télémétrie",
+            Description = "Mozilla Firefox n'envoie plus de télémétrie, et son agent « navigateur par défaut » ne renvoie plus d'informations.",
+            Warning = "Firefox affichera « Votre navigateur est géré par votre organisation » dans ses paramètres.",
+            Category = TweakCategory.Privacy,
+            Risk = TweakRisk.Advanced,
+            Operations = () => IfInstalled("firefox.exe",
+            [
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Mozilla\Firefox", "DisableTelemetry", 1),
+                RegistryValueOp.Hklm(@"SOFTWARE\Policies\Mozilla\Firefox", "DisableDefaultBrowserAgent", 1),
+            ]),
+        },
 
         // ---------------- Réseau ----------------
         new()
@@ -316,6 +436,13 @@ public static class TweakCatalog
     public static IEnumerable<Tweak> Profile => All.Where(t => t.Risk == TweakRisk.Safe);
 
     public static Tweak Get(string id) => All.Single(t => t.Id == id);
+
+    /// <summary>Returns no operation (the tweak shows as unavailable) when the app is not installed.</summary>
+    private static IReadOnlyList<ITweakOperation> IfInstalled(string exe, IReadOnlyList<ITweakOperation> operations) =>
+        RegistryAccess.KeyExists(RegistryHive.LocalMachine, $@"{AppPathsKey}\{exe}")
+        || RegistryAccess.KeyExists(RegistryHive.CurrentUser, $@"{AppPathsKey}\{exe}")
+            ? operations
+            : [];
 
     private static IEnumerable<string> ActiveTcpInterfaces() =>
         RegistryAccess.SubKeyNames(RegistryHive.LocalMachine, TcpInterfaces)
