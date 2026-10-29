@@ -1,0 +1,89 @@
+<Page x:Class="Overclutch.App.Views.GameModePage"
+      ScrollViewer.CanContentScroll="False"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Title="Mode jeu">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,24,32,32" MaxWidth="980">
+            <TextBlock Text="Mode jeu automatique" Style="{StaticResource PageTitle}" />
+            <TextBlock Style="{StaticResource PageSubtitle}"
+                       Text="Quand un jeu se lance, Overclutch lui donne la priorité, passe en plan d'alimentation performance et calme les applis en arrière-plan. Tout revient comme avant à la fermeture du jeu." />
+
+            <ui:CardControl Padding="16,14">
+                <ui:CardControl.Icon>
+                    <ui:SymbolIcon Symbol="Games24" />
+                </ui:CardControl.Icon>
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="Activer le mode jeu" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Text="Continue de fonctionner quand la fenêtre est réduite dans la zone de notification." Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding Enabled}" />
+            </ui:CardControl>
+
+            <ui:Card Margin="0,8,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Rocket24" FontSize="22" Margin="0,0,12,0" VerticalAlignment="Top"
+                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                    <StackPanel>
+                        <TextBlock Text="{Binding SessionTitle}" FontSize="15" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding SessionDetail}" Style="{StaticResource Caption}" Margin="0,2,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </ui:Card>
+
+            <TextBlock Text="Pendant une partie" Style="{StaticResource SectionTitle}" />
+            <ui:CardControl Padding="16,12" Margin="0,0,0,6">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="Plan d'alimentation performance" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Text="Bascule sur « Overclutch Performance » le temps de la partie, puis remet ton plan habituel." Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding BoostPowerPlan}" />
+            </ui:CardControl>
+            <ui:CardControl Padding="16,12" Margin="0,0,0,6">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="Calmer les applis en arrière-plan" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Text="Passe les applis de la liste ci-dessous en priorité basse. Elles continuent de tourner normalement." Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding LowerBackgroundApps}" />
+            </ui:CardControl>
+
+            <TextBlock Text="Listes" Style="{StaticResource SectionTitle}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Jeux en plus" FontWeight="SemiBold" />
+                    <TextBlock Text="Exécutables à traiter comme des jeux même hors des bibliothèques connues. Un par ligne, par ex. « osu! » ou « javaw »."
+                               Style="{StaticResource Caption}" Margin="0,2,0,6" />
+                    <ui:TextBox Text="{Binding ExtraGamesText, UpdateSourceTrigger=PropertyChanged}"
+                                AcceptsReturn="True" TextWrapping="NoWrap" Height="160"
+                                VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
+                                PlaceholderText="un exécutable par ligne" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Applis à calmer" FontWeight="SemiBold" />
+                    <TextBlock Text="Exécutables mis en priorité basse pendant une partie. Un par ligne."
+                               Style="{StaticResource Caption}" Margin="0,2,0,6" />
+                    <ui:TextBox Text="{Binding BackgroundAppsText, UpdateSourceTrigger=PropertyChanged}"
+                                AcceptsReturn="True" TextWrapping="NoWrap" Height="160"
+                                VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
+                </StackPanel>
+            </Grid>
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <ui:Button Content="Enregistrer les listes" Appearance="Primary" Icon="{ui:SymbolIcon Checkmark24}"
+                           Command="{Binding SaveListsCommand}" />
+                <TextBlock Text="{Binding SavedText}" Style="{StaticResource Caption}" Margin="12,0,0,0" VerticalAlignment="Center" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

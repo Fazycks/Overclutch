@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Overclutch.App/Overclutch.App.csproj" />
+    <Project Path="src/Overclutch.Core/Overclutch.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Overclutch.Core.Tests/Overclutch.Core.Tests.csproj" />
+  </Folder>
+</Solution>

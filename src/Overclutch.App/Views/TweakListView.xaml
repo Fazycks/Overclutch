@@ -1,0 +1,56 @@
+<UserControl x:Class="Overclutch.App.Views.TweakListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:Overclutch.App.ViewModels">
+    <ItemsControl ItemsSource="{Binding Groups}">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type vm:TweakGroup}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,20,0,8">
+                        <ui:SymbolIcon Symbol="{Binding Icon}" FontSize="20" Margin="0,0,8,0"
+                                       Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="{Binding Title}" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:TweakItemViewModel}">
+                                <ui:CardControl Margin="0,0,0,6" Padding="16,12">
+                                    <ui:CardControl.Header>
+                                        <StackPanel Margin="0,0,16,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                <Border Visibility="{Binding RequiresReboot, Converter={StaticResource BoolToVisibility}}"
+                                                        Margin="8,0,0,0" Padding="6,1" CornerRadius="4" VerticalAlignment="Center"
+                                                        Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                                                    <TextBlock Text="Redémarrage requis" FontSize="11"
+                                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Description}" Style="{StaticResource Caption}" Margin="0,3,0,0" />
+                                            <TextBlock Text="{Binding Warning, StringFormat='⚠ {0}'}"
+                                                       Visibility="{Binding Warning, Converter={StaticResource NullToVisibility}}"
+                                                       Style="{StaticResource Caption}" Foreground="#FFC56B" Margin="0,4,0,0" />
+                                            <TextBlock Text="{Binding StatusText}"
+                                                       Visibility="{Binding StatusText, Converter={StaticResource NullToVisibility}}"
+                                                       Style="{StaticResource Caption}" FontStyle="Italic" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </ui:CardControl.Header>
+                                    <Grid MinWidth="50">
+                                        <ui:ProgressRing IsIndeterminate="True" Width="22" Height="22"
+                                                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+                                        <ui:ToggleSwitch IsChecked="{Binding IsOn, Mode=OneWay}"
+                                                         IsEnabled="{Binding CanToggle}"
+                                                         Command="{Binding ToggleCommand}"
+                                                         Visibility="{Binding IsBusy, Converter={StaticResource InverseBoolToVisibility}}" />
+                                    </Grid>
+                                </ui:CardControl>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>
