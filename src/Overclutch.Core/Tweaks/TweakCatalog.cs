@@ -11,6 +11,8 @@ public static class TweakCatalog
     private const string GameConfigStore = @"System\GameConfigStore";
     private const string TcpInterfaces = @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces";
     private const string AppPathsKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
+    private const string ExplorerKey = @"Software\Microsoft\Windows\CurrentVersion\Explorer";
+    private const string AppCompatPolicies = @"SOFTWARE\Policies\Microsoft\Windows\AppCompat";
     private const string NetAdapterClass = @"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}";
     private static readonly Guid CoreParkingMinCores = new("0cc5b647-c1df-4637-891a-dec35c318583");
 
@@ -147,15 +149,15 @@ public static class TweakCatalog
             Id = "bg.startup-delay",
             Title = "Supprimer le délai des apps au démarrage",
             Description = "Windows attend normalement quelques secondes avant de lancer les apps de démarrage ; ce délai est retiré.",
-            Category = TweakCategory.Background,
-            Operations = () => [RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize", "StartupDelayInMSec", 0)],
+            Category = TweakCategory.Explorer,
+            Operations = () => [RegistryValueOp.Hkcu(ExplorerKey + @"\Serialize", "StartupDelayInMSec", 0)],
         },
         new()
         {
             Id = "bg.transparency",
             Title = "Désactiver les effets de transparence",
             Description = "Moins de travail pour le compositeur de fenêtres (DWM), surtout utile sur les GPU modestes.",
-            Category = TweakCategory.Background,
+            Category = TweakCategory.Explorer,
             Operations = () => [RegistryValueOp.Hkcu(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "EnableTransparency", 0)],
         },
         new()
@@ -185,6 +187,104 @@ public static class TweakCatalog
             Description = "Après un plantage, Windows n'analyse plus l'application et n'envoie plus de rapport à Microsoft (WerFault).",
             Category = TweakCategory.Background,
             Operations = () => [RegistryValueOp.Hklm(@"SOFTWARE\Microsoft\Windows\Windows Error Reporting", "Disabled", 1)],
+        },
+        new()
+        {
+            Id = "bg.telemetry-tasks",
+            Title = "Désactiver les tâches planifiées de télémétrie",
+            Description = "Coupe les tâches qui inventorient tes applications et ton matériel en arrière-plan pour Microsoft "
+                          + "(Compatibility Appraiser, programme d'amélioration de l'expérience utilisateur, diagnostic disque, Feedback).",
+            Category = TweakCategory.Background,
+            Operations = () =>
+            [
+                new ScheduledTaskOp(@"\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser Exp"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Application Experience\ProgramDataUpdater"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Application Experience\MareBackup"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Customer Experience Improvement Program\Consolidator"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Autochk\Proxy"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Feedback\Siuf\DmClient"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload"),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Windows Error Reporting\QueueReporting"),
+            ],
+        },
+        new()
+        {
+            Id = "bg.compat-assistant",
+            Title = "Désactiver l'assistant de compatibilité des programmes",
+            Description = "Windows ne surveille plus chaque programme lancé pour proposer des réglages de compatibilité, "
+                          + "et n'inventorie plus tes applications pour la télémétrie.",
+            Category = TweakCategory.Background,
+            Operations = () =>
+            [
+                RegistryValueOp.Hklm(AppCompatPolicies, "DisablePCA", 1),
+                RegistryValueOp.Hklm(AppCompatPolicies, "DisableInventory", 1),
+                RegistryValueOp.Hklm(AppCompatPolicies, "AITEnable", 0),
+                new ScheduledTaskOp(@"\Microsoft\Windows\Application Experience\PcaPatchDbTask"),
+            ],
+        },
+        new()
+        {
+            Id = "adv.search-indexing",
+            Title = "Désactiver l'indexation de la recherche",
+            Description = "Arrête le service Windows Search, qui parcourt tes fichiers en arrière-plan pour accélérer la recherche.",
+            Warning = "La recherche du menu Démarrer, de l'Explorateur et d'Outlook devient plus lente et moins complète. "
+                      + "Après l'annulation, l'index se reconstruit à partir du redémarrage suivant.",
+            Category = TweakCategory.Background,
+            Risk = TweakRisk.Advanced,
+            RequiresReboot = true,
+            Operations = () => [new ServiceStartOp("WSearch", System.ServiceProcess.ServiceStartMode.Disabled)],
+        },
+
+        // ---------------- Explorateur & interface ----------------
+        new()
+        {
+            Id = "ui.menu-delay",
+            Title = "Menus plus réactifs",
+            Description = "Les sous-menus s'ouvrent dès que tu les survoles, au lieu d'attendre 400 ms.",
+            Category = TweakCategory.Explorer,
+            RequiresReboot = true,
+            Operations = () => [RegistryValueOp.Hkcu(@"Control Panel\Desktop", "MenuShowDelay", "0", RegistryValueKind.String)],
+        },
+        new()
+        {
+            Id = "ui.folder-discovery",
+            Title = "Ouvrir les gros dossiers plus vite",
+            Description = "L'Explorateur n'analyse plus le contenu d'un dossier (images, musique...) pour choisir son affichage, "
+                          + "ce qui ralentit l'ouverture des dossiers contenant beaucoup de fichiers.",
+            Category = TweakCategory.Explorer,
+            Operations = () =>
+            [
+                RegistryValueOp.Hkcu(@"Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell",
+                    "FolderType", "NotSpecified", RegistryValueKind.String),
+            ],
+        },
+        new()
+        {
+            Id = "ui.explorer-ads",
+            Title = "Désactiver les pubs dans l'Explorateur",
+            Description = "L'Explorateur n'affiche plus de bannières pour OneDrive ou Microsoft 365.",
+            Category = TweakCategory.Explorer,
+            RequiresReboot = true,
+            Operations = () => [RegistryValueOp.Hkcu(ExplorerKey + @"\Advanced", "ShowSyncProviderNotifications", 0)],
+        },
+        new()
+        {
+            Id = "adv.recent-files",
+            Title = "Masquer les fichiers récents de l'Explorateur",
+            Description = "L'accueil de l'Explorateur n'affiche plus tes fichiers récents, tes dossiers fréquents ni tes fichiers cloud.",
+            Warning = "Simple préférence de confidentialité, sans gain de performances : tu perds l'accès rapide à tes derniers fichiers.",
+            Category = TweakCategory.Explorer,
+            Risk = TweakRisk.Advanced,
+            RequiresReboot = true,
+            Operations = () =>
+            [
+                RegistryValueOp.Hkcu(ExplorerKey, "ShowRecent", 0),
+                RegistryValueOp.Hkcu(ExplorerKey, "ShowFrequent", 0),
+                RegistryValueOp.Hkcu(ExplorerKey, "ShowCloudFilesInQuickAccess", 0),
+            ],
         },
 
         // ---------------- Confidentialité & pubs ----------------

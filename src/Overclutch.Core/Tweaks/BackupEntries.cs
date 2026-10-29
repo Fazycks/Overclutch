@@ -16,6 +16,7 @@ namespace Overclutch.Core.Tweaks;
 [JsonDerivedType(typeof(PowerSettingBackup), "powerSetting")]
 [JsonDerivedType(typeof(BcdBackup), "bcd")]
 [JsonDerivedType(typeof(NvidiaBackup), "nvidia")]
+[JsonDerivedType(typeof(ScheduledTaskBackup), "scheduledTask")]
 public abstract record BackupEntry
 {
     /// <summary>Identifies what was changed, so a re-apply only captures targets not backed up yet.</summary>
@@ -114,4 +115,16 @@ public sealed record NvidiaBackup(uint SettingId, uint? Value) : BackupEntry
     public override string Target => $"nvidia:{SettingId:X8}";
 
     public override void Restore() => NvidiaDrs.Write(SettingId, Value);
+}
+
+public sealed record ScheduledTaskBackup(string Path, bool Enabled) : BackupEntry
+{
+    public override string Target => $"task:{Path}";
+
+    public override void Restore()
+    {
+        // The task may have been removed by a Windows update since.
+        if (ScheduledTasks.IsEnabled(Path) is { } current && current != Enabled)
+            ScheduledTasks.SetEnabled(Path, Enabled);
+    }
 }

@@ -42,7 +42,8 @@ entièrement original et le projet n'est affilié à aucun éditeur.
 | Catégorie | Profil « Optimiser mon PC » | Page Avancé |
 |---|---|---|
 | Système et processeur | Plan d'alimentation Overclutch, priorité au premier plan, planificateur multimédia orienté jeux, Power Throttling | Core parking, dynamic tick, HPET, résolution du timer globale |
-| Services et arrière-plan | Télémétrie Windows, Game DVR, suggestions et pubs, délai des apps au démarrage, transparence, rapport d'erreurs | Apps du Store en arrière-plan, SysMain |
+| Services et arrière-plan | Télémétrie Windows, tâches planifiées de télémétrie, assistant de compatibilité des programmes, Game DVR, suggestions et pubs, rapport d'erreurs | Apps du Store en arrière-plan, SysMain, indexation de la recherche |
+| Explorateur et interface | Délai des apps au démarrage, transparence, menus plus réactifs, ouverture des gros dossiers, pubs de l'Explorateur | Fichiers récents de l'Explorateur |
 | Confidentialité et pubs | Identifiant publicitaire, expériences personnalisées, contenu suggéré dans Paramètres, résultats web de la recherche, historique d'activités, télémétrie Office | Edge et Chrome en arrière-plan, télémétrie Chrome et Firefox |
 | Réseau | Bridage réseau multimédia, algorithme de Nagle, Ethernet économe en énergie | Modération d'interruptions |
 | GPU, jeux et souris | HAGS, Mode Jeu Windows, accélération de la souris, NVIDIA faible latence, NVIDIA filtrage de texture | NVIDIA performances maximales, Multiplane Overlays, optimisations plein écran |
@@ -61,8 +62,8 @@ Configuration requise : Windows 10 ou 11, 64 bits. Les réglages NVIDIA nécessi
 ## Sécurité et annulation
 
 - Avant « Optimiser mon PC », Overclutch crée un point de restauration Windows.
-- La valeur d'origine de chaque élément modifié (registre, service, plan d'alimentation, configuration de
-  démarrage, pilote NVIDIA) est enregistrée dans `C:\ProgramData\Overclutch\backups.json`. Réappliquer un réglage
+- La valeur d'origine de chaque élément modifié (registre, service, tâche planifiée, plan d'alimentation,
+  configuration de démarrage, pilote NVIDIA) est enregistrée dans `C:\ProgramData\Overclutch\backups.json`. Réappliquer un réglage
   n'écrase jamais cette première sauvegarde.
 - L'annulation restaure ces valeurs exactes, y compris en supprimant celles qui n'existaient pas au départ.
 
@@ -87,8 +88,8 @@ L'app se relance d'elle-même en administrateur.
 | `tests/Overclutch.Core.Tests` | Tests xUnit |
 | `docs/SPEC.md` | Choix techniques et architecture |
 
-Un réglage est une liste d'opérations (valeur de registre, service, réglage d'alimentation, élément `bcdedit`,
-réglage du pilote NVIDIA). Chaque opération sait dire si elle est déjà appliquée, capturer l'état d'origine et
+Un réglage est une liste d'opérations (valeur de registre, service, tâche planifiée, réglage d'alimentation,
+élément `bcdedit`, réglage du pilote NVIDIA). Chaque opération sait dire si elle est déjà appliquée, capturer l'état d'origine et
 s'appliquer. Pour ajouter un réglage, ajoute une entrée dans
 [`TweakCatalog.cs`](src/Overclutch.Core/Tweaks/TweakCatalog.cs).
 

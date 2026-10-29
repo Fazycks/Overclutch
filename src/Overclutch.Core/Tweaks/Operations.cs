@@ -132,3 +132,15 @@ public sealed class NvidiaSettingOp(uint settingId, uint value) : ITweakOperatio
 
     public void Apply() => NvidiaDrs.Write(settingId, value);
 }
+
+/// <summary>Disables a Task Scheduler task.</summary>
+public sealed class ScheduledTaskOp(string path) : ITweakOperation
+{
+    public bool IsAvailable => ScheduledTasks.IsEnabled(path) is not null;
+
+    public bool IsApplied => ScheduledTasks.IsEnabled(path) == false;
+
+    public BackupEntry Capture() => new ScheduledTaskBackup(path, ScheduledTasks.IsEnabled(path) ?? true);
+
+    public void Apply() => ScheduledTasks.SetEnabled(path, enabled: false);
+}

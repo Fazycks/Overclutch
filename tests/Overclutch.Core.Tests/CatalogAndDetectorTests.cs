@@ -36,4 +36,19 @@ public sealed class CatalogAndDetectorTests
     [InlineData(null, null)]
     public void Localized_bcd_booleans_are_written_back_in_english(string? read, string? expected) =>
         Assert.Equal(expected, Overclutch.Core.Native.Bcd.ToWritable(read));
+
+    private const string TaskXml = """
+        <?xml version="1.0" encoding="UTF-16"?>
+        <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+          <Settings>{0}</Settings>
+          <Triggers><BootTrigger><Enabled>false</Enabled></BootTrigger></Triggers>
+        </Task>
+        """;
+
+    [Theory]
+    [InlineData("", true)]
+    [InlineData("<Enabled>false</Enabled>", false)]
+    [InlineData("<Enabled>true</Enabled>", true)]
+    public void Reads_whether_a_scheduled_task_is_enabled_from_its_settings(string settings, bool expected) =>
+        Assert.Equal(expected, Overclutch.Core.Native.ScheduledTasks.ParseEnabled(string.Format(TaskXml, settings)));
 }
