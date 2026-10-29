@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Overclutch.App.Services;
+using Overclutch.Core.Settings;
 using Wpf.Ui.Appearance;
 
 namespace Overclutch.App;
@@ -38,6 +39,9 @@ public partial class App : Application
 
         if (services.Settings.GameModeEnabled)
             services.GameMode.Start();
+
+        // Lets the uninstall hook know about a startup task created by an older version.
+        _ = Task.Run(Autostart.SyncMarker);
 
         ListenForShowRequests();
     }

@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Overclutch</AssemblyName>
     <RootNamespace>Overclutch.App</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <ApplicationIcon>Assets\overclutch.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>Overclutch.App.Program</StartupObject>

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Principal;
+using Overclutch.Core.Settings;
 using Velopack;
 
 namespace Overclutch.App;
@@ -16,7 +17,9 @@ public static class Program
     {
         // Must run first: handles install/update/uninstall hooks and exits when Velopack invokes us for them.
         // Those hooks run without elevation, which is why the manifest does not require it.
-        VelopackApp.Build().Run();
+        VelopackApp.Build()
+            .OnBeforeUninstallFastCallback(_ => Autostart.RemoveForUninstall())
+            .Run();
 
         if (!IsElevated())
         {
