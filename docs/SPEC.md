@@ -12,7 +12,7 @@ Optimiseur Windows gratuit pour le jeu, inspiré du principe de hone.gg (implém
 | Tweaks risqués | Inclus dans une page « Avancé », jamais appliqués par le profil, avec avertissement |
 | GPU | NVIDIA uniquement (profil global du driver via NvAPI DRS) |
 | Monitoring | Sans driver kernel : compteurs Windows + NVML (pas de température CPU) |
-| Droits | Toujours administrateur (manifest `requireAdministrator`) |
+| Droits | Toujours administrateur : manifest `asInvoker` pour que l'installateur Velopack puisse lancer l'app, puis relance élevée au démarrage (`Program.Main`) |
 | Mode jeu | Détection auto du jeu, priorité haute, plan d'alimentation max, apps de fond en priorité basse, restauration à la fermeture |
 | Langue | Français uniquement |
 | Distribution | GitHub Releases + mises à jour auto (Velopack) |
