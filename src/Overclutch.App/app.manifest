@@ -4,8 +4,10 @@
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-        <!-- Almost every tweak writes to HKLM, services or the boot configuration. -->
-        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+        <!-- Almost every tweak needs admin rights, but Program.Main asks for them itself:
+             with requireAdministrator, Velopack's installer cannot run the install hooks
+             or start the app afterwards (ERROR_ELEVATION_REQUIRED). -->
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
       </requestedPrivileges>
     </security>
   </trustInfo>
