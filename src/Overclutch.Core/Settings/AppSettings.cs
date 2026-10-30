@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Overclutch.Core.GameMode;
 using Overclutch.Core.Maintenance;
+using Overclutch.Core.Profiles;
 
 namespace Overclutch.Core.Settings;
 
@@ -39,6 +40,8 @@ public sealed class AppSettings
     public MaintenanceSchedule MaintenanceSchedule { get; set; } = MaintenanceSchedule.Never;
 
     public DateTime? LastMaintenanceRun { get; set; }
+
+    public List<Profile> Profiles { get; set; } = [];
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private static string FilePath => Path.Combine(AppPaths.DataDirectory, "settings.json");

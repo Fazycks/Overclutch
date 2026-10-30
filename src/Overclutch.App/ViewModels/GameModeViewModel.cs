@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,10 +15,14 @@ public sealed partial class GameModeViewModel : ObservableObject
 
     public GameModeViewModel()
     {
-        ExtraGamesText = string.Join(Environment.NewLine, Settings.ExtraGames);
-        BackgroundAppsText = string.Join(Environment.NewLine, Settings.BackgroundApps);
+        ShowLists();
 
         Services.GameModeEnabledChanged += () => OnPropertyChanged(nameof(Enabled));
+        Services.GameModeSettingsChanged += () =>
+        {
+            ShowLists();
+            RefreshLevel();
+        };
         Services.GameMode.GameStarted += _ => Application.Current.Dispatcher.BeginInvoke(UpdateSession);
         Services.GameMode.GameEnded += _ => Application.Current.Dispatcher.BeginInvoke(UpdateSession);
         UpdateSession();
@@ -112,9 +117,15 @@ public sealed partial class GameModeViewModel : ObservableObject
         Settings.ExtraGames = ParseList(ExtraGamesText);
         Settings.BackgroundApps = ParseList(BackgroundAppsText);
         Settings.Save();
+        ShowLists();
+        SavedText = "Listes enregistrées.";
+    }
+
+    [MemberNotNull(nameof(ExtraGamesText), nameof(BackgroundAppsText))]
+    private void ShowLists()
+    {
         ExtraGamesText = string.Join(Environment.NewLine, Settings.ExtraGames);
         BackgroundAppsText = string.Join(Environment.NewLine, Settings.BackgroundApps);
-        SavedText = "Listes enregistrées.";
     }
 
     private void UpdateSession() => Session = Services.GameMode.Current;

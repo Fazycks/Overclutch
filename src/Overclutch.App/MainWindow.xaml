@@ -59,6 +59,11 @@
                         <ui:SymbolIcon Symbol="Games24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="Profils" TargetPageType="{x:Type views:ProfilesPage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Layer24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem Content="Paramètres" TargetPageType="{x:Type views:SettingsPage}">

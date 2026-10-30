@@ -34,6 +34,11 @@ public sealed partial class AppServices : ObservableObject
     /// <summary>Raised when game mode is switched on or off, from the page or the tray menu.</summary>
     public event Action? GameModeEnabledChanged;
 
+    /// <summary>Raised when something other than the game mode page changed its level or lists.</summary>
+    public event Action? GameModeSettingsChanged;
+
+    public void NotifyGameModeSettingsChanged() => GameModeSettingsChanged?.Invoke();
+
     public void SetGameModeEnabled(bool enabled)
     {
         Settings.GameModeEnabled = enabled;

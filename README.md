@@ -35,6 +35,9 @@ entièrement original et le projet n'est affilié à aucun éditeur.
   launcher, et rétablit tout à sa fermeture. Trois niveaux : Équilibré
   (priorité au jeu, plan d'alimentation performance, applis calmées), Performance (en plus : RAM en cache vidée,
   mises à jour et indexation en pause) ou Personnalisé.
+- **Profils** : enregistre tes réglages et ton mode jeu, et échange-les avec un code à coller dans un chat, sans
+  serveur ni compte. Un code ne contient que des noms de réglages du catalogue, et son contenu est montré avant
+  d'être appliqué, avec les avertissements des réglages avancés.
 - **Matériel et suivi en temps réel** : processeur, mémoire, carte graphique NVIDIA.
 - **Entretien** : fichiers temporaires, cache de Windows Update, rapports d'erreurs, vidages mémoire, corbeille,
   cache des shaders DirectX et NVIDIA, mémoire en attente et cache DNS. Analyse de l'espace récupérable, lancement
